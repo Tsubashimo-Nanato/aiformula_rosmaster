@@ -337,3 +337,80 @@ Notes:
 before: [1, 246829, -176, 203524]
 after:  [1, 256433, -176, 194108]
 ```
+
+## 2026-05-13 Update: YOLOP_A1 Compatibility
+
+Added ROS packages:
+
+```text
+road_detector
+auto_launch
+```
+
+Mirrored from:
+
+```text
+E:\Mess\Projects\Programming\aiformula\YOLOP\YOLOP_A1
+```
+
+Runtime artifact:
+
+```text
+road_detector/weights/yolop-640-640.onnx
+```
+
+Build result on robot:
+
+```text
+Summary: 2 packages finished [9.39s]
+MODEL_INPUTS [('images', [1, 3, 640, 640], 'tensor(float)')]
+MODEL_OUTPUTS [('det_out', [1, 25200, 6], 'tensor(float)'), ('drive_area_seg', [1, 2, 640, 640], 'tensor(float)'), ('lane_line_seg', [1, 2, 640, 640], 'tensor(float)')]
+```
+
+Launch command:
+
+```bash
+ros2 launch auto_launch auto_yolop_launch.py
+```
+
+Current YOLOP launch PID:
+
+```text
+12277
+```
+
+Verified node:
+
+```text
+/aiformula_perception/road_detector
+```
+
+Verified topics:
+
+```text
+/aiformula_sensing/zed_node/left_image/undistorted [sensor_msgs/msg/Image]
+/aiformula_perception/road_detector/mask_image [sensor_msgs/msg/Image]
+/aiformula_perception/road_detector/mask_image_roi [sensor_msgs/msg/Image]
+/aiformula_visualization/road_detector/annotated_mask_image [sensor_msgs/msg/Image]
+```
+
+Mask sample:
+
+```text
+height: 480
+width: 640
+encoding: mono8
+step: 640
+```
+
+Observed mask publish rate:
+
+```text
+~8.7 Hz
+```
+
+Runtime provider:
+
+```text
+CUDAExecutionProvider, CPUExecutionProvider
+```

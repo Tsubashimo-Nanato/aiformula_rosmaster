@@ -13,6 +13,7 @@ This repository uses compatibility packages under `workspace/ros2_ws/src/aiformu
 - `/aiformula_sensing/zed_node/left_image/undistorted`
 - `/aiformula_sensing/zed_node/right_image/undistorted`
 - `/aiformula_sensing/zed_node/point_cloud/cloud_registered`
+- `/aiformula_perception/road_detector/mask_image`
 
 The current ROSMASTER driver locks the R2 front steering servos at neutral and drives the two rear motor channels as a differential-drive test platform.
 
@@ -22,3 +23,5 @@ Latest ROSMASTER-specific changes:
 - Rear motor differential drive uses normalized command mixing, so yaw commands counter-rotate the rear motors instead of using a weak physical-tread conversion.
 - ROSMASTER USB RGB camera is bridged to the ZED image topic names.
 - ROSMASTER Orbbec/Astra depth camera is bridged to the ZED point-cloud/depth topic names.
+- `ros2 launch auto_launch auto_yolop_launch.py` is supported through adapter-owned `auto_launch` and `road_detector` packages.
+- `road_detector` uses the mirrored `YOLOP_A1` ONNX model and publishes a `mono8` lane mask on `/aiformula_perception/road_detector/mask_image`.

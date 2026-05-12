@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>road_detector</name>
+  <version>0.1.0</version>
+  <description>YOLOP_A1 road/lane mask detector for ROSMASTER AI Formula compatibility.</description>
+  <maintainer email="dev@example.com">ROSMASTER AI Formula Maintainers</maintainer>
+  <license>Proprietary</license>
+
+  <depend>cv_bridge</depend>
+  <depend>rclpy</depend>
+  <depend>sensor_msgs</depend>
+  <exec_depend>python3-numpy</exec_depend>
+  <exec_depend>python3-opencv</exec_depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

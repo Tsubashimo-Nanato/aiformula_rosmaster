@@ -33,6 +33,8 @@ source /home/jetson/workspace/ros2_ws/src/aiformula/launchers/shellscript/source
 - `launchers`: AI Formula-style launch entrypoint.
 - `rosmaster_aiformula_bridge`: ROSMASTER hardware driver and AI Formula topic compatibility bridge.
 - `rosmaster_aiformula_bringup`: ROSMASTER base bringup composed for AI Formula testing.
+- `road_detector`: YOLOP_A1 ONNX road/lane mask publisher.
+- `auto_launch`: compatibility launch package for `ros2 launch auto_launch auto_yolop_launch.py`.
 
 ## Notes
 
@@ -45,6 +47,10 @@ source /home/jetson/workspace/ros2_ws/src/aiformula/launchers/shellscript/source
   - `/aiformula_sensing/zed_node/left_image/undistorted`
   - `/aiformula_sensing/zed_node/right_image/undistorted`
   - `/aiformula_sensing/zed_node/point_cloud/cloud_registered`
+- YOLOP compatibility can be launched after the main camera stack is running:
+  - `ros2 launch auto_launch auto_yolop_launch.py`
+  - publishes `/aiformula_perception/road_detector/mask_image`
+  - uses the mirrored `YOLOP_A1` ONNX model from `road_detector/weights/yolop-640-640.onnx`
 - RViz is on by default. Use `./launch_all_nodes.sh use_rviz:=false` for headless SSH runs.
 - Chinese overview: `README.zh-CN.md`.
 - See `codex/live_rosmaster_deployment_log.md` for the latest live robot build and test record.

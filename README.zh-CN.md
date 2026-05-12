@@ -46,8 +46,27 @@ RViz 默认启动。无显示器或 SSH 运行时使用：
 - `/aiformula_sensing/zed_node/right_image/undistorted`
 - `/aiformula_sensing/zed_node/depth/depth_registered`
 - `/aiformula_sensing/zed_node/point_cloud/cloud_registered`
+- `/aiformula_perception/road_detector/mask_image`
 
 说明：ROSMASTER 是单目 RGB 相机加 Orbbec/Astra 深度相机，不是真 ZED。当前右目图像是左目 RGB 图像的副本；点云来自 Orbbec/Astra 深度相机。
+
+## YOLOP
+
+主相机栈启动后，可以单独启动 YOLOP 兼容节点：
+
+```bash
+ros2 launch auto_launch auto_yolop_launch.py
+```
+
+该节点使用从 `YOLOP_A1` 镜像来的 `yolop-640-640.onnx`，订阅：
+
+- `/aiformula_sensing/zed_node/left_image/undistorted`
+
+发布：
+
+- `/aiformula_perception/road_detector/mask_image`
+- `/aiformula_perception/road_detector/mask_image_roi`
+- `/aiformula_visualization/road_detector/annotated_mask_image`
 
 ## 测试脚本
 

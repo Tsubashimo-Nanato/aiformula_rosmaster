@@ -1,0 +1,7 @@
+road_detector:
+  ros__parameters:
+    input_size: 640
+    ll_threshold: 0.5
+    publish_annotated: true
+    drop_every_n: 2
+    provider: cuda
