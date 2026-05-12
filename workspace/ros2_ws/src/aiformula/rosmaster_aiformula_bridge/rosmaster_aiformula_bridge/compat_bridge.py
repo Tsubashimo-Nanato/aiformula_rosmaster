@@ -40,7 +40,9 @@ class RosmasterAiformulaCompatBridge(Node):
         self.declare_parameter("max_angular_z", 4.0)
 
         self.declare_parameter("input_odom_topic", "/odom_raw")
+        self.declare_parameter("output_standard_odom_topic", "/odom")
         self.declare_parameter("output_odom_topic", "/aiformula_sensing/gyro_odometry_publisher/odom")
+        self.declare_parameter("output_wheel_odom_topic", "/aiformula_sensing/wheel_odometry_publisher/odom")
         self.declare_parameter("output_velocity_body_topic", "/aiformula_sensing/vectornav/velocity_body")
         self.declare_parameter("odom_frame_id", "")
         self.declare_parameter("base_frame_id", "")
@@ -62,7 +64,9 @@ class RosmasterAiformulaCompatBridge(Node):
         self.max_angular_z = float(self.get_parameter("max_angular_z").value)
 
         self.input_odom_topic = str(self.get_parameter("input_odom_topic").value)
+        self.output_standard_odom_topic = str(self.get_parameter("output_standard_odom_topic").value)
         self.output_odom_topic = str(self.get_parameter("output_odom_topic").value)
+        self.output_wheel_odom_topic = str(self.get_parameter("output_wheel_odom_topic").value)
         self.output_velocity_body_topic = str(self.get_parameter("output_velocity_body_topic").value)
         self.odom_frame_id = str(self.get_parameter("odom_frame_id").value)
         self.base_frame_id = str(self.get_parameter("base_frame_id").value)
@@ -81,7 +85,9 @@ class RosmasterAiformulaCompatBridge(Node):
         self.cmd_pub = self.create_publisher(Twist, self.output_cmd_vel_topic, 10)
         self.cmd_sub = self.create_subscription(Twist, self.input_cmd_vel_topic, self.cmd_vel_callback, 10)
 
+        self.standard_odom_pub = self.create_publisher(Odometry, self.output_standard_odom_topic, 10)
         self.odom_pub = self.create_publisher(Odometry, self.output_odom_topic, 10)
+        self.wheel_odom_pub = self.create_publisher(Odometry, self.output_wheel_odom_topic, 10)
         self.velocity_body_pub = self.create_publisher(Odometry, self.output_velocity_body_topic, 10)
         self.odom_sub = self.create_subscription(Odometry, self.input_odom_topic, self.odom_callback, 10)
 
@@ -106,6 +112,7 @@ class RosmasterAiformulaCompatBridge(Node):
         )
         self.get_logger().info(
             f"odom bridge: {self.input_odom_topic} -> {self.output_odom_topic}, "
+            f"{self.output_standard_odom_topic}, {self.output_wheel_odom_topic}, "
             f"velocity_body -> {self.output_velocity_body_topic}"
         )
         self.get_logger().info(f"imu bridge: {self.input_imu_topic} -> {self.output_vectornav_imu_topic}")
@@ -126,7 +133,9 @@ class RosmasterAiformulaCompatBridge(Node):
             odom.header.frame_id = self.odom_frame_id
         if self.base_frame_id:
             odom.child_frame_id = self.base_frame_id
+        self.standard_odom_pub.publish(deepcopy(odom))
         self.odom_pub.publish(odom)
+        self.wheel_odom_pub.publish(deepcopy(odom))
 
         velocity_body = Odometry()
         velocity_body.header = deepcopy(odom.header)

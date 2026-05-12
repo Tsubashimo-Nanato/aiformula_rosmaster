@@ -287,3 +287,53 @@ Final zero rear-motor command and neutral front-steering lock were sent after th
   - `yahboomcar_base_node`
   - `yahboomcar_description`
 - The Sophia-facing launch surface is preserved through the `launchers` package and `/aiformula_*` topics.
+
+## 2026-05-13 Update: Differential Steering And Camera Topics
+
+Latest deployed build:
+
+```text
+Summary: 3 packages finished
+```
+
+Current launch PID:
+
+```text
+8378
+```
+
+Changes:
+
+- Joystick yaw axis changed to `2`, matching right-stick horizontal on the detected DragonRise controller.
+- Rear-motor diff drive now uses normalized mixing:
+  - full forward: both rear motors forward
+  - full yaw: rear motors counter-rotate
+  - combined forward/yaw: mixed and normalized to avoid overdriving
+- The wrapper now sources Yahboom `software/library_ws`, which exposes `astra_camera` and lidar/camera support packages.
+- ROSMASTER USB RGB camera and Orbbec depth camera now start by default.
+
+New/verified aiformula-compatible topics:
+
+```text
+/odom
+/aiformula_sensing/wheel_odometry_publisher/odom
+/aiformula_sensing/zed_node/imu
+/aiformula_sensing/zed_node/left_image/undistorted
+/aiformula_sensing/zed_node/right_image/undistorted
+/aiformula_sensing/zed_node/left/camera_info
+/aiformula_sensing/zed_node/right/camera_info
+/aiformula_sensing/zed_node/depth/depth_registered
+/aiformula_sensing/zed_node/depth/camera_info
+/aiformula_sensing/zed_node/point_cloud/cloud_registered
+```
+
+Notes:
+
+- Right ZED image is currently a copy of the monocular USB RGB camera.
+- Point cloud comes from the Orbbec/Astra depth camera at `/camera/depth/points`.
+- A direct `/cmd_vel` yaw test with `angular.z=4.0` changed rear encoder channels in opposite directions:
+
+```text
+before: [1, 246829, -176, 203524]
+after:  [1, 256433, -176, 194108]
+```

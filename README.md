@@ -22,7 +22,7 @@ cd /home/jetson/workspace/ros2_ws/src/aiformula/launchers/shellscript
 ./launch_all_nodes.sh
 ```
 
-The wrapper sources ROS 2 Humble, the Yahboom workspace, and `/home/jetson/workspace/ros2_ws/install/setup.bash` before launching. For manual shells, use:
+The wrapper sources ROS 2 Humble, the Yahboom workspace, Yahboom `software/library_ws`, and `/home/jetson/workspace/ros2_ws/install/setup.bash` before launching. For manual shells, use:
 
 ```bash
 source /home/jetson/workspace/ros2_ws/src/aiformula/launchers/shellscript/source_rosmaster_env.sh
@@ -41,6 +41,10 @@ source /home/jetson/workspace/ros2_ws/src/aiformula/launchers/shellscript/source
 - The live ROSMASTER is treated as an R2-style platform: front steering exists, but the current adapter locks the front steering servos at neutral and drives rear motor channels 2 and 4 with differential-drive `linear.x`/`angular.z` semantics.
 - USB gamepad control is enabled by default. Hold `R2`, use left-stick vertical for forward/back, and use right-stick horizontal for differential yaw.
 - Default `V max` is `4.0`.
+- ROSMASTER USB RGB camera and Orbbec/Astra depth camera are enabled by default and bridged to ZED-style Sophia topics:
+  - `/aiformula_sensing/zed_node/left_image/undistorted`
+  - `/aiformula_sensing/zed_node/right_image/undistorted`
+  - `/aiformula_sensing/zed_node/point_cloud/cloud_registered`
 - RViz is on by default. Use `./launch_all_nodes.sh use_rviz:=false` for headless SSH runs.
 - Chinese overview: `README.zh-CN.md`.
 - See `codex/live_rosmaster_deployment_log.md` for the latest live robot build and test record.

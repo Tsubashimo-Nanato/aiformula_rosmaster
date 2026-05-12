@@ -123,7 +123,7 @@ def generate_launch_description():
     )
     joy_angular_axis_arg = DeclareLaunchArgument(
         "joy_angular_axis",
-        default_value="3",
+        default_value="2",
         description="Right-stick horizontal axis for differential-drive yaw.",
     )
     joy_max_linear_x_arg = DeclareLaunchArgument(
@@ -161,6 +161,38 @@ def generate_launch_description():
         "front_steering_lock_angle",
         default_value="0.0",
         description="Relative steering angle used when locking the front servos.",
+    )
+    use_camera_arg = DeclareLaunchArgument(
+        "use_camera",
+        default_value="true",
+        choices=["true", "false"],
+        description="Start the ROSMASTER USB camera and publish ZED-compatible image topics.",
+    )
+    use_depth_camera_arg = DeclareLaunchArgument(
+        "use_depth_camera",
+        default_value="true",
+        choices=["true", "false"],
+        description="Start the ROSMASTER Orbbec depth camera and publish ZED-compatible point cloud topics.",
+    )
+    camera_video_device_arg = DeclareLaunchArgument(
+        "camera_video_device",
+        default_value="/dev/video0",
+        description="V4L2 device for the ROSMASTER USB RGB camera.",
+    )
+    camera_width_arg = DeclareLaunchArgument(
+        "camera_width",
+        default_value="640",
+        description="USB camera image width.",
+    )
+    camera_height_arg = DeclareLaunchArgument(
+        "camera_height",
+        default_value="480",
+        description="USB camera image height.",
+    )
+    camera_fps_arg = DeclareLaunchArgument(
+        "camera_fps",
+        default_value="30.0",
+        description="USB camera frame rate.",
     )
 
     robot_description = ParameterValue(
@@ -243,13 +275,15 @@ def generate_launch_description():
                 "max_linear_y": ParameterValue(LaunchConfiguration("max_linear_y"), value_type=float),
                 "max_angular_z": ParameterValue(LaunchConfiguration("max_angular_z"), value_type=float),
                 "input_odom_topic": LaunchConfiguration("input_odom_topic"),
+                "output_standard_odom_topic": "/odom",
                 "output_odom_topic": "/aiformula_sensing/gyro_odometry_publisher/odom",
+                "output_wheel_odom_topic": "/aiformula_sensing/wheel_odometry_publisher/odom",
                 "output_velocity_body_topic": "/aiformula_sensing/vectornav/velocity_body",
                 "odom_frame_id": "odom",
                 "base_frame_id": "base_footprint",
                 "input_imu_topic": LaunchConfiguration("input_imu_topic"),
                 "output_vectornav_imu_topic": "/aiformula_sensing/vectornav/imu",
-                "output_zed_imu_topic": "",
+                "output_zed_imu_topic": "/aiformula_sensing/zed_node/imu",
                 "imu_frame_id": "imu_link",
                 "publish_rear_potentiometer_zero": True,
                 "rear_potentiometer_topic": "/aiformula_sensing/rear_potentiometer/yaw",
@@ -303,6 +337,84 @@ def generate_launch_description():
         condition=IfCondition(LaunchConfiguration("use_joy")),
     )
 
+    usb_camera_node = Node(
+        package="usb_cam",
+        executable="usb_cam_node_exe",
+        name="camera",
+        namespace="/usb_cam",
+        output="screen",
+        parameters=[
+            {
+                "video_device": LaunchConfiguration("camera_video_device"),
+                "image_width": ParameterValue(LaunchConfiguration("camera_width"), value_type=int),
+                "image_height": ParameterValue(LaunchConfiguration("camera_height"), value_type=int),
+                "framerate": ParameterValue(LaunchConfiguration("camera_fps"), value_type=float),
+                "pixel_format": "mjpeg2rgb",
+                "camera_name": "rosmaster_usb_camera",
+                "camera_info_url": f"file://{bringup_share / 'config' / 'rosmaster_usb_camera.yaml'}",
+                "frame_id": "zed_left_camera_optical_frame",
+            }
+        ],
+        condition=IfCondition(LaunchConfiguration("use_camera")),
+    )
+
+    astra_camera_node = Node(
+        package="astra_camera",
+        executable="astra_camera_node",
+        name="camera",
+        namespace="/camera",
+        output="screen",
+        parameters=[
+            {
+                "camera_name": "camera",
+                "depth_registration": False,
+                "enable_color": False,
+                "enable_depth": True,
+                "enable_point_cloud": True,
+                "enable_colored_point_cloud": False,
+                "enable_ir": False,
+                "color_width": 640,
+                "color_height": 480,
+                "color_fps": 30,
+                "depth_width": 640,
+                "depth_height": 480,
+                "depth_fps": 30,
+                "publish_tf": True,
+                "tf_publish_rate": 10.0,
+                "connection_delay": 100,
+                "oni_log_to_console": False,
+                "oni_log_to_file": False,
+            }
+        ],
+        condition=IfCondition(LaunchConfiguration("use_depth_camera")),
+    )
+
+    camera_compat_bridge_node = Node(
+        package="rosmaster_aiformula_bridge",
+        executable="camera_compat_bridge",
+        name="rosmaster_camera_compat_bridge",
+        output="screen",
+        parameters=[
+            {
+                "input_color_image_topic": "/usb_cam/image_raw",
+                "input_color_camera_info_topic": "/usb_cam/camera_info",
+                "input_depth_image_topic": "/camera/depth/image_raw",
+                "input_depth_camera_info_topic": "/camera/depth/camera_info",
+                "input_point_cloud_topic": "/camera/depth/points",
+                "output_left_image_topic": "/aiformula_sensing/zed_node/left_image/undistorted",
+                "output_right_image_topic": "/aiformula_sensing/zed_node/right_image/undistorted",
+                "output_left_camera_info_topic": "/aiformula_sensing/zed_node/left/camera_info",
+                "output_right_camera_info_topic": "/aiformula_sensing/zed_node/right/camera_info",
+                "output_depth_image_topic": "/aiformula_sensing/zed_node/depth/depth_registered",
+                "output_depth_camera_info_topic": "/aiformula_sensing/zed_node/depth/camera_info",
+                "output_point_cloud_topic": "/aiformula_sensing/zed_node/point_cloud/cloud_registered",
+                "publish_depth": ParameterValue(LaunchConfiguration("use_depth_camera"), value_type=bool),
+                "publish_point_cloud": ParameterValue(LaunchConfiguration("use_depth_camera"), value_type=bool),
+            }
+        ],
+        condition=IfCondition(LaunchConfiguration("use_camera")),
+    )
+
     return LaunchDescription(
         [
             model_arg,
@@ -333,11 +445,20 @@ def generate_launch_description():
             right_motor_channel_arg,
             lock_front_steering_arg,
             front_steering_lock_angle_arg,
+            use_camera_arg,
+            use_depth_camera_arg,
+            camera_video_device_arg,
+            camera_width_arg,
+            camera_height_arg,
+            camera_fps_arg,
             robot_state_publisher_node,
             driver_node,
             base_node,
             imu_filter_node,
             compat_bridge_node,
+            usb_camera_node,
+            astra_camera_node,
+            camera_compat_bridge_node,
             joy_node,
             joy_mapper_node,
         ]

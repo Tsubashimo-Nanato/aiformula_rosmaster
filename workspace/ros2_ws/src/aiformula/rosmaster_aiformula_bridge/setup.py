@@ -19,6 +19,7 @@ setup(
     entry_points={
         "console_scripts": [
             "compat_bridge = rosmaster_aiformula_bridge.compat_bridge:main",
+            "camera_compat_bridge = rosmaster_aiformula_bridge.camera_compat_bridge:main",
             "joy_diff_drive_mapper = rosmaster_aiformula_bridge.joy_diff_drive_mapper:main",
             "rosmaster_driver_x3 = rosmaster_aiformula_bridge.rosmaster_driver_x3:main",
         ],

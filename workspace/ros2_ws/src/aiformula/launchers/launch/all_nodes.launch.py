@@ -47,6 +47,18 @@ def generate_launch_description():
         choices=["true", "false"],
         description="Start USB gamepad control through the AI Formula cmd_vel topic.",
     )
+    use_camera_arg = DeclareLaunchArgument(
+        "use_camera",
+        default_value="true",
+        choices=["true", "false"],
+        description="Start ROSMASTER camera compatibility topics.",
+    )
+    use_depth_camera_arg = DeclareLaunchArgument(
+        "use_depth_camera",
+        default_value="true",
+        choices=["true", "false"],
+        description="Start ROSMASTER depth camera and point cloud compatibility topics.",
+    )
 
     rosmaster_bringup = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -58,6 +70,8 @@ def generate_launch_description():
             "max_linear_y": LaunchConfiguration("max_linear_y"),
             "max_angular_z": LaunchConfiguration("max_angular_z"),
             "use_joy": LaunchConfiguration("use_joy"),
+            "use_camera": LaunchConfiguration("use_camera"),
+            "use_depth_camera": LaunchConfiguration("use_depth_camera"),
         }.items(),
     )
 
@@ -78,6 +92,8 @@ def generate_launch_description():
             max_linear_y_arg,
             max_angular_z_arg,
             use_joy_arg,
+            use_camera_arg,
+            use_depth_camera_arg,
             rosmaster_bringup,
             rviz,
         ]

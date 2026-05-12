@@ -116,11 +116,13 @@ class RosmasterDriverX3(Node):
 
     def command_rear_motor_diff(self, vx: float, wz: float) -> None:
         self.lock_front_servos()
-        half_tread = 0.5 * self.wheel_tread
-        left_command = _clamp(vx - (wz * half_tread), self.xlinear_limit)
-        right_command = _clamp(vx + (wz * half_tread), self.xlinear_limit)
-        left_pwm = _clamp_motor(self.left_motor_sign * self.command_to_pwm(left_command))
-        right_pwm = _clamp_motor(self.right_motor_sign * self.command_to_pwm(right_command))
+        linear_ratio = self.normalized_command(vx, self.xlinear_limit)
+        angular_ratio = self.normalized_command(wz, self.angular_limit)
+        left_mix = linear_ratio - angular_ratio
+        right_mix = linear_ratio + angular_ratio
+        mix_scale = max(1.0, abs(left_mix), abs(right_mix))
+        left_pwm = _clamp_motor(self.left_motor_sign * (left_mix / mix_scale) * self.max_motor_pwm)
+        right_pwm = _clamp_motor(self.right_motor_sign * (right_mix / mix_scale) * self.max_motor_pwm)
         self.set_motor_channels(left_pwm, right_pwm)
 
         self.last_reported_twist = Twist()
@@ -131,6 +133,11 @@ class RosmasterDriverX3(Node):
         if self.xlinear_limit <= 0.0:
             return 0.0
         return (command / self.xlinear_limit) * self.max_motor_pwm
+
+    def normalized_command(self, command: float, limit: float) -> float:
+        if limit <= 0.0:
+            return 0.0
+        return _clamp(command, limit) / abs(limit)
 
     def set_motor_channels(self, left_pwm: int, right_pwm: int) -> None:
         speeds = [0, 0, 0, 0]

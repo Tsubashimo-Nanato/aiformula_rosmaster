@@ -41,7 +41,7 @@ class JoyDiffDriveMapper(Node):
 
         self.declare_parameter("cmd_vel_topic", "/aiformula_control/game_pad/cmd_vel")
         self.declare_parameter("linear_axis", 1)
-        self.declare_parameter("angular_axis", 3)
+        self.declare_parameter("angular_axis", 2)
         self.declare_parameter("linear_axis_sign", 1.0)
         self.declare_parameter("angular_axis_sign", 1.0)
         self.declare_parameter("enable_button", 7)
