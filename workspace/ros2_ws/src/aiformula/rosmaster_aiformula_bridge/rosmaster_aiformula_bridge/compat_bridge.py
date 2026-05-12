@@ -6,6 +6,7 @@ from typing import Any
 import rclpy
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
+from rclpy._rclpy_pybind11 import RCLError
 from rclpy.executors import ExternalShutdownException
 from rclpy.node import Node
 from sensor_msgs.msg import Imu
@@ -34,9 +35,9 @@ class RosmasterAiformulaCompatBridge(Node):
         self.declare_parameter("input_cmd_vel_topic", "/aiformula_control/game_pad/cmd_vel")
         self.declare_parameter("output_cmd_vel_topic", "/cmd_vel")
         self.declare_parameter("allow_lateral", False)
-        self.declare_parameter("max_linear_x", 0.35)
+        self.declare_parameter("max_linear_x", 4.0)
         self.declare_parameter("max_linear_y", 0.0)
-        self.declare_parameter("max_angular_z", 0.8)
+        self.declare_parameter("max_angular_z", 4.0)
 
         self.declare_parameter("input_odom_topic", "/odom_raw")
         self.declare_parameter("output_odom_topic", "/aiformula_sensing/gyro_odometry_publisher/odom")
@@ -157,7 +158,10 @@ def main(args: list[str] | None = None) -> None:
     except (KeyboardInterrupt, ExternalShutdownException):
         pass
     finally:
-        node.destroy_node()
+        try:
+            node.destroy_node()
+        except (KeyboardInterrupt, RCLError):
+            pass
         if rclpy.ok():
             rclpy.shutdown()
 

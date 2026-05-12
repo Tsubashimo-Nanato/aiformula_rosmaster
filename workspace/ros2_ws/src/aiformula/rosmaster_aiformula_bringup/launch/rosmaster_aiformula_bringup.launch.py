@@ -25,6 +25,12 @@ def generate_launch_description():
         default_value="5",
         description="Rosmaster_Lib car type. Yahboom R2/R2L is 5.",
     )
+    drive_mode_arg = DeclareLaunchArgument(
+        "drive_mode",
+        default_value="rear_motor_diff",
+        choices=["rear_motor_diff", "car_motion"],
+        description="Use rear motors as differential drive, or pass cmd_vel through set_car_motion.",
+    )
     use_robot_state_publisher_arg = DeclareLaunchArgument(
         "use_robot_state_publisher",
         default_value="true",
@@ -62,12 +68,12 @@ def generate_launch_description():
         "allow_lateral",
         default_value="false",
         choices=["true", "false"],
-        description="Allow AI Formula commands to use ROSMASTER mecanum lateral velocity.",
+        description="Allow lateral velocity. Keep false while front steering is locked.",
     )
     max_linear_x_arg = DeclareLaunchArgument(
         "max_linear_x",
-        default_value="0.35",
-        description="Conservative forward velocity limit for first tests.",
+        default_value="4.0",
+        description="Forward velocity command limit.",
     )
     max_linear_y_arg = DeclareLaunchArgument(
         "max_linear_y",
@@ -76,14 +82,8 @@ def generate_launch_description():
     )
     max_angular_z_arg = DeclareLaunchArgument(
         "max_angular_z",
-        default_value="0.8",
-        description="Conservative yaw velocity limit for first tests.",
-    )
-    suppress_buzzer_arg = DeclareLaunchArgument(
-        "suppress_buzzer",
-        default_value="true",
-        choices=["true", "false"],
-        description="Continuously send buzzer-off while the ROSMASTER driver is running.",
+        default_value="4.0",
+        description="Yaw command limit.",
     )
     command_timeout_arg = DeclareLaunchArgument(
         "command_timeout_sec",
@@ -128,13 +128,39 @@ def generate_launch_description():
     )
     joy_max_linear_x_arg = DeclareLaunchArgument(
         "joy_max_linear_x",
-        default_value="0.25",
-        description="Maximum joystick forward speed in m/s.",
+        default_value="4.0",
+        description="Maximum joystick forward command.",
     )
     joy_max_angular_z_arg = DeclareLaunchArgument(
         "joy_max_angular_z",
-        default_value="0.6",
-        description="Maximum joystick yaw rate in rad/s.",
+        default_value="4.0",
+        description="Maximum joystick yaw command.",
+    )
+    max_motor_pwm_arg = DeclareLaunchArgument(
+        "max_motor_pwm",
+        default_value="100.0",
+        description="Rear motor PWM used at max command.",
+    )
+    left_motor_channel_arg = DeclareLaunchArgument(
+        "left_motor_channel",
+        default_value="4",
+        description="Rosmaster_Lib set_motor channel for the left rear motor.",
+    )
+    right_motor_channel_arg = DeclareLaunchArgument(
+        "right_motor_channel",
+        default_value="2",
+        description="Rosmaster_Lib set_motor channel for the right rear motor.",
+    )
+    lock_front_steering_arg = DeclareLaunchArgument(
+        "lock_front_steering",
+        default_value="true",
+        choices=["true", "false"],
+        description="Hold the R2 front steering servos at the neutral relative angle.",
+    )
+    front_steering_lock_angle_arg = DeclareLaunchArgument(
+        "front_steering_lock_angle",
+        default_value="0.0",
+        description="Relative steering angle used when locking the front servos.",
     )
 
     robot_description = ParameterValue(
@@ -158,8 +184,18 @@ def generate_launch_description():
         parameters=[
             {
                 "car_type": ParameterValue(LaunchConfiguration("car_type"), value_type=int),
+                "drive_mode": LaunchConfiguration("drive_mode"),
+                "xlinear_limit": ParameterValue(LaunchConfiguration("max_linear_x"), value_type=float),
+                "ylinear_limit": ParameterValue(LaunchConfiguration("max_linear_y"), value_type=float),
+                "angular_limit": ParameterValue(LaunchConfiguration("max_angular_z"), value_type=float),
                 "command_timeout_sec": ParameterValue(LaunchConfiguration("command_timeout_sec"), value_type=float),
-                "suppress_buzzer": ParameterValue(LaunchConfiguration("suppress_buzzer"), value_type=bool),
+                "max_motor_pwm": ParameterValue(LaunchConfiguration("max_motor_pwm"), value_type=float),
+                "left_motor_channel": ParameterValue(LaunchConfiguration("left_motor_channel"), value_type=int),
+                "right_motor_channel": ParameterValue(LaunchConfiguration("right_motor_channel"), value_type=int),
+                "lock_front_steering": ParameterValue(LaunchConfiguration("lock_front_steering"), value_type=bool),
+                "front_steering_lock_angle": ParameterValue(
+                    LaunchConfiguration("front_steering_lock_angle"), value_type=float
+                ),
             }
         ],
         remappings=[
@@ -271,6 +307,7 @@ def generate_launch_description():
         [
             model_arg,
             car_type_arg,
+            drive_mode_arg,
             use_robot_state_publisher_arg,
             use_imu_filter_arg,
             pub_odom_tf_arg,
@@ -281,7 +318,6 @@ def generate_launch_description():
             max_linear_x_arg,
             max_linear_y_arg,
             max_angular_z_arg,
-            suppress_buzzer_arg,
             command_timeout_arg,
             use_joy_arg,
             joy_device_id_arg,
@@ -292,6 +328,11 @@ def generate_launch_description():
             joy_angular_axis_arg,
             joy_max_linear_x_arg,
             joy_max_angular_z_arg,
+            max_motor_pwm_arg,
+            left_motor_channel_arg,
+            right_motor_channel_arg,
+            lock_front_steering_arg,
+            front_steering_lock_angle_arg,
             robot_state_publisher_node,
             driver_node,
             base_node,

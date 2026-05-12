@@ -4,6 +4,7 @@ from typing import Any, Sequence
 
 import rclpy
 from geometry_msgs.msg import Twist
+from rclpy._rclpy_pybind11 import RCLError
 from rclpy.duration import Duration
 from rclpy.executors import ExternalShutdownException
 from rclpy.node import Node
@@ -48,8 +49,8 @@ class JoyDiffDriveMapper(Node):
         self.declare_parameter("enable_axis_threshold", -0.5)
         self.declare_parameter("require_enable", True)
         self.declare_parameter("deadzone", 0.12)
-        self.declare_parameter("max_linear_x", 0.25)
-        self.declare_parameter("max_angular_z", 0.6)
+        self.declare_parameter("max_linear_x", 4.0)
+        self.declare_parameter("max_angular_z", 4.0)
         self.declare_parameter("publish_rate_hz", 20.0)
         self.declare_parameter("joy_timeout_sec", 0.35)
 
@@ -135,8 +136,12 @@ class JoyDiffDriveMapper(Node):
             self.publish_twist(Twist())
 
     def destroy_node(self) -> bool:
-        for _ in range(3):
-            self.cmd_pub.publish(Twist())
+        if rclpy.ok():
+            for _ in range(3):
+                try:
+                    self.cmd_pub.publish(Twist())
+                except RCLError:
+                    break
         return super().destroy_node()
 
 
@@ -148,7 +153,10 @@ def main(args: list[str] | None = None) -> None:
     except (KeyboardInterrupt, ExternalShutdownException):
         pass
     finally:
-        node.destroy_node()
+        try:
+            node.destroy_node()
+        except (KeyboardInterrupt, RCLError):
+            pass
         if rclpy.ok():
             rclpy.shutdown()
 

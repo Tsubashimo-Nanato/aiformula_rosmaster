@@ -38,7 +38,8 @@ ros2 launch launchers all_nodes.launch
 
 - Large local mirrors and proprietary snapshots are intentionally ignored by Git.
 - The adapter uses `Rosmaster_Lib` for the ROSMASTER controller and keeps Sophia-facing topics under `/aiformula_*`.
-- The live ROSMASTER is treated as an R2-style platform: front steering exists, but the current adapter ignores front-servo steering and drives with differential-drive `linear.x`/`angular.z` semantics.
+- The live ROSMASTER is treated as an R2-style platform: front steering exists, but the current adapter locks the front steering servos at neutral and drives rear motor channels 2 and 4 with differential-drive `linear.x`/`angular.z` semantics.
 - USB gamepad control is enabled by default. Hold `R2`, use left-stick vertical for forward/back, and use right-stick horizontal for differential yaw.
-- The ROSMASTER driver defaults to `suppress_buzzer:=true`, which sends buzzer-off periodically while the adapter stack is running. This mitigates the controller low-voltage alarm; charge the robot battery if the alarm returns when the stack is stopped.
+- Default `V max` is `4.0`. RViz auto-disables when `DISPLAY` is unset; pass `use_rviz:=true` when running on a desktop session.
+- Chinese overview: `README.zh-CN.md`.
 - See `codex/live_rosmaster_deployment_log.md` for the latest live robot build and test record.

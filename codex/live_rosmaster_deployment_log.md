@@ -168,27 +168,15 @@ The deployed adapter workspace is small. No large model or proprietary asset dir
 
 The buzzer stopped briefly after direct `Rosmaster_Lib.set_beep(0)` commands, then returned after a few seconds. No ROS, Yahboom app, or other user-space process was found holding `/dev/myserial` or reissuing buzzer commands at that time.
 
-When the adapter stack was running, `/voltage` reported:
+Later operator feedback identified this as a hardware false alarm, so the adapter no longer contains periodic buzzer suppression. The ROSMASTER `Buzzer` topic remains available for explicit manual commands.
+
+Clean launch command:
 
 ```text
-data: 9.699999809265137
+ros2 launch launchers all_nodes.launch
 ```
 
-This points to the ROSMASTER controller firmware re-enabling the buzzer as a low-voltage alarm. The adapter driver now defaults to `suppress_buzzer:=true`, which sends `set_beep(0)` each publish tick while the stack is running. This is a mitigation, not a battery fix.
-
-Current live launch after joystick initialization:
-
-```text
-ros2 launch launchers all_nodes.launch use_rviz:=false use_joy:=true allow_lateral:=false suppress_buzzer:=true
-```
-
-The launch was started headless after sending zero motion. PID details are captured in `/tmp/rosmaster_aiformula_launch.pid` on the robot. Stop it with:
-
-```bash
-kill -INT -$(cat /tmp/rosmaster_aiformula_launch.pid)
-```
-
-Then send a final zero motion and buzzer-off command if needed. Charge the robot battery before relying on normal operation without suppression.
+When no `DISPLAY` is present, RViz now defaults off so this command no longer produces Qt/XCB display errors over SSH.
 
 ## R2 Joystick Initialization
 
@@ -196,8 +184,12 @@ The live robot was reconfigured as an R2-style platform:
 
 - `rosmaster_driver` parameter `car_type`: `5`
 - R2 URDF: `yahboomcar_R2.urdf.xacro`
-- Front steering is not commanded by the adapter.
+- Front steering is locked at neutral by the adapter.
+- Rear motor channels found by direct test:
+  - `right_motor_channel=2`
+  - `left_motor_channel=4`
 - `allow_lateral:=false`; commands are limited to differential-drive `linear.x` and `angular.z`.
+- `V max` is `4.0`.
 
 USB controller detected:
 
@@ -211,7 +203,7 @@ Joystick mapping:
 - Left-stick vertical drives forward/back.
 - Right-stick horizontal commands differential yaw.
 
-ROS nodes currently started by the headless launch:
+ROS nodes verified by the default headless launch:
 
 ```text
 /aiformula_control/joy_diff_drive_mapper
@@ -239,17 +231,57 @@ Idle verification:
   angular.z: 0.0
 ```
 
-Live launch PID at verification time:
-
-```text
-291917
-```
-
 Voltage after the joystick launch:
 
 ```text
 data: 10.300000190734863
 ```
+
+## Final Verification
+
+Final build on the robot:
+
+```text
+Summary: 3 packages finished [11.7s]
+```
+
+Exact no-argument launch verification:
+
+```text
+ros2 launch launchers all_nodes.launch
+EXACT_LAUNCH_OK
+```
+
+Because the SSH session has no `DISPLAY`, RViz auto-disabled and no Qt/XCB error was produced.
+
+Path-test launch verification:
+
+```text
+ros2 launch launchers all_nodes.launch use_rviz:=false use_joy:=false
+PATH_LAUNCH_OK
+```
+
+Driver parameters verified:
+
+```text
+drive_mode: rear_motor_diff
+xlinear_limit: 4.0
+left_motor_channel: 4
+right_motor_channel: 2
+```
+
+`simple_path_check.sh` result:
+
+```text
+voltage: 10.399999618530273
+imu: acc=(-0.088, 0.050, -9.818) gyro=(0.007, -0.011, -0.009)
+encoders before: [1, 52219, -48, 51866]
+encoders after: [1, 54492, -48, 52898]
+encoder delta: [0, 2273, 0, 1032]
+odom twist: linear.x=-1.000 angular.z=0.000
+```
+
+Final zero rear-motor command and neutral front-steering lock were sent after the test.
 
 ## Notes
 

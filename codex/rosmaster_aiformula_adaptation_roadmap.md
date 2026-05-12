@@ -96,7 +96,7 @@ Reason:
 - Sophia `motor_controller` is trained/tuned for a differential-drive AI Formula chassis and publishes CAN frame `0x210`.
 - ROSMASTER already has a working low-level serial controller with `set_car_motion(vx, vy, wz)`.
 - The live Jetson has `joy`, `teleop_twist_joy`, and `torch`, but not `can_msgs`; Sophia's current `motor_controller` cannot run as-is until that message dependency and a CAN-to-ROSMASTER shim are added.
-- The current safe first step keeps the Sophia `/aiformula_control/game_pad/cmd_vel` interface and differential-drive semantics, then maps to ROSMASTER serial commands with the front steering left untouched.
+- The current safe first step keeps the Sophia `/aiformula_control/game_pad/cmd_vel` interface and differential-drive semantics, locks the front steering servos at neutral, and maps commands to ROSMASTER rear motor channels 2 and 4.
 
 First driving path:
 
@@ -104,7 +104,8 @@ First driving path:
 /aiformula_control/game_pad/cmd_vel
   -> ROSMASTER compatibility bridge
   -> rosmaster_driver cmd_vel
-  -> Rosmaster_Lib.set_car_motion(vx, 0, wz), car_type=5
+  -> Rosmaster_Lib.set_akm_steering_angle(0, False)
+  -> Rosmaster_Lib.set_motor(0, right_pwm, 0, left_pwm), car_type=5
   -> serial controller on /dev/myserial
 ```
 
@@ -118,6 +119,8 @@ Current joystick path:
 
 The mapper requires `R2` as a deadman, uses left-stick vertical for `linear.x`, and uses right-stick horizontal for `angular.z`.
 
+The driver publishes `/motor_encoders` so simple tests can verify the rear motor channels moved without reading `/dev/myserial` from a second process.
+
 Optional test-only path:
 
 ```text
@@ -129,8 +132,6 @@ Sophia motor_controller
 ```
 
 The optional path is useful for testing Sophia's model-correction node, but not as the default robot bringup.
-
-Keep `suppress_buzzer:=true` in ROSMASTER bringup until the battery and controller alarm behavior are characterized. On the live robot, the buzzer repeatedly returned after direct buzzer-off commands while voltage was about `9.7 V`, which is consistent with a controller low-voltage alarm rather than a competing ROS process.
 
 ## Perception Strategy
 
@@ -173,11 +174,12 @@ The live robot has also been configured with the minimal cleanup captured in `co
 - Implement ROSMASTER-to-Sophia odom bridge.
 - Implement ROSMASTER-to-Sophia IMU bridge.
 - Implement Sophia cmd_vel-to-ROSMASTER command bridge.
-- Add conservative velocity limits matching the current R2-style differential-drive test mode:
-  - joystick `vx`: `[-0.25, 0.25]`
-  - joystick `wz`: `[-0.6, 0.6]`
-  - bridge `vx`: `[-0.35, 0.35]`
-  - bridge `wz`: `[-0.8, 0.8]`
+- Add velocity limits matching the current R2-style differential-drive test mode:
+  - `V max`: `4.0`
+  - joystick `vx`: `[-4.0, 4.0]`
+  - joystick `wz`: `[-4.0, 4.0]`
+  - bridge `vx`: `[-4.0, 4.0]`
+  - bridge `wz`: `[-4.0, 4.0]`
 - Force `vy` to `0.0` for AI Formula differential-drive compatibility.
 
 ### Phase 3: Description And Frames

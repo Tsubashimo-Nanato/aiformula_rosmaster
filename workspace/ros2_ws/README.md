@@ -17,11 +17,20 @@ ros2 launch launchers all_nodes.launch.py
 
 The `launchers` package is intentionally small. It preserves the AI Formula launch entrypoint while routing hardware-specific work through ROSMASTER adapter packages.
 
+`ros2 launch launchers all_nodes.launch` is the preferred command. RViz defaults to off when `DISPLAY` is unset, which avoids Qt/XCB errors over SSH.
+
 Current joystick mapping:
 
 - Hold `R2` as the deadman.
 - Left-stick vertical publishes differential-drive forward/back motion.
 - Right-stick horizontal publishes differential-drive yaw.
-- Front steering is not commanded by the adapter.
+- Front steering is locked at neutral by the adapter.
+- Default `V max` is `4.0`.
+- `/motor_encoders` publishes the four raw Rosmaster encoder counters. On this robot channels 2 and 4 are the rear drive motors.
 
-The ROSMASTER driver defaults to `suppress_buzzer:=true`. It periodically sends buzzer-off while the adapter stack is running because the live controller re-enabled the buzzer when battery voltage was about `9.7 V`, consistent with a low-voltage alarm. Charge the robot battery if the alarm returns when the stack is stopped.
+Run a short live check with:
+
+```bash
+cd ~/workspace/ros2_ws/src/aiformula/launchers/shellscript
+./simple_path_check.sh
+```
