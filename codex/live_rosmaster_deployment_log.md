@@ -51,14 +51,10 @@ Packages:
 ```bash
 cd /home/jetson/workspace/ros2_ws/src/aiformula/launchers/shellscript
 ./init_sensors.sh
-cd /home/jetson/workspace/ros2_ws
-source /opt/ros/humble/setup.bash
-source /home/jetson/yahboomcar_ros2_ws/yahboomcar_ws/install/setup.bash
-source install/setup.bash
-ros2 launch launchers all_nodes.launch
+./launch_all_nodes.sh
 ```
 
-`all_nodes.launch.py` is also available. The extensionless-style `all_nodes.launch` XML wrapper was tested with ROS 2 launch and works.
+`launch_all_nodes.sh` sources all required setup files before calling the extensionless-style `all_nodes.launch` wrapper.
 
 ## Nodes Started
 
@@ -173,10 +169,11 @@ Later operator feedback identified this as a hardware false alarm, so the adapte
 Clean launch command:
 
 ```text
-ros2 launch launchers all_nodes.launch
+cd /home/jetson/workspace/ros2_ws/src/aiformula/launchers/shellscript
+./launch_all_nodes.sh
 ```
 
-When no `DISPLAY` is present, RViz now defaults off so this command no longer produces Qt/XCB display errors over SSH.
+The wrapper sources ROS 2 Humble, the Yahboom workspace, and the ROSMASTER adapter workspace before launching. RViz is on by default; use `./launch_all_nodes.sh use_rviz:=false` for headless SSH runs.
 
 ## R2 Joystick Initialization
 
@@ -245,14 +242,14 @@ Final build on the robot:
 Summary: 3 packages finished [11.7s]
 ```
 
-Exact no-argument launch verification:
+Previous exact no-argument launch verification:
 
 ```text
 ros2 launch launchers all_nodes.launch
 EXACT_LAUNCH_OK
 ```
 
-Because the SSH session has no `DISPLAY`, RViz auto-disabled and no Qt/XCB error was produced.
+At that time RViz auto-disabled over SSH. The current requested behavior is RViz on by default; use `use_rviz:=false` for headless SSH runs.
 
 Path-test launch verification:
 

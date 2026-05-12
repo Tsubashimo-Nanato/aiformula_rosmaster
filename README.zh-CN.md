@@ -14,17 +14,15 @@
 ```bash
 cd /home/jetson/workspace/ros2_ws/src/aiformula/launchers/shellscript
 ./init_sensors.sh
-cd /home/jetson/workspace/ros2_ws
-source /opt/ros/humble/setup.bash
-source /home/jetson/yahboomcar_ros2_ws/yahboomcar_ws/install/setup.bash
-source install/setup.bash
-ros2 launch launchers all_nodes.launch
+./launch_all_nodes.sh
 ```
 
-没有 `DISPLAY` 时默认不启动 RViz。需要 RViz 时使用：
+`launch_all_nodes.sh` 会自动 source ROS 2、Yahboom 工作空间和本工作空间的 `install/setup.bash`。
+
+RViz 默认启动。无显示器或 SSH 运行时使用：
 
 ```bash
-ros2 launch launchers all_nodes.launch use_rviz:=true
+./launch_all_nodes.sh use_rviz:=false
 ```
 
 ## 手柄控制

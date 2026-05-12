@@ -7,17 +7,15 @@ Expected robot-side workflow:
 ```bash
 cd ~/workspace/ros2_ws/src/aiformula/launchers/shellscript
 ./init_sensors.sh
-cd ~/workspace/ros2_ws
-colcon build --symlink-install
-source /opt/ros/humble/setup.bash
-source /home/jetson/yahboomcar_ros2_ws/yahboomcar_ws/install/setup.bash
-source install/setup.bash
-ros2 launch launchers all_nodes.launch.py
+./build_ws.sh
+./launch_all_nodes.sh
 ```
 
 The `launchers` package is intentionally small. It preserves the AI Formula launch entrypoint while routing hardware-specific work through ROSMASTER adapter packages.
 
-`ros2 launch launchers all_nodes.launch` is the preferred command. RViz defaults to off when `DISPLAY` is unset, which avoids Qt/XCB errors over SSH.
+The shell wrappers source `/opt/ros/humble/setup.bash`, the Yahboom workspace, and this workspace's `install/setup.bash` internally. For an interactive shell, source `source_rosmaster_env.sh`.
+
+RViz is on by default. Use `./launch_all_nodes.sh use_rviz:=false` for headless SSH runs.
 
 Current joystick mapping:
 

@@ -3,15 +3,8 @@ set -eo pipefail
 
 echo "[init_sensors] ROSMASTER AI Formula sensor init"
 
-source /opt/ros/humble/setup.bash
-
-if [[ -f /home/jetson/yahboomcar_ros2_ws/yahboomcar_ws/install/setup.bash ]]; then
-  source /home/jetson/yahboomcar_ros2_ws/yahboomcar_ws/install/setup.bash
-fi
-
-if [[ -f /home/jetson/workspace/ros2_ws/install/setup.bash ]]; then
-  source /home/jetson/workspace/ros2_ws/install/setup.bash
-fi
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/source_rosmaster_env.sh"
 
 pkill -f "/home/jetson/Rosmaster/rosmaster/rosmaster_main.py" 2>/dev/null || true
 

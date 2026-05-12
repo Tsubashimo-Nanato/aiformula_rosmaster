@@ -166,8 +166,8 @@ The live robot has also been configured with the minimal cleanup captured in `co
 ### Phase 1: Local Overlay Skeleton
 
 - Create ROS 2 package skeletons under `rosmaster_aiformula_ws/src`.
-- Add a bringup launch that starts only the ROSMASTER driver, odom, IMU filter, robot state publisher, and compatibility bridge.
-- Exclude Yahboom app, hotspot startup, OLED, RViz, and Yahboom joystick by default.
+- Add a bringup launch that starts only the ROSMASTER driver, odom, IMU filter, robot state publisher, compatibility bridge, and optional RViz.
+- Exclude Yahboom app, hotspot startup, OLED, and Yahboom joystick by default. RViz is on by default in the adapter launch and can be disabled with `use_rviz:=false`.
 
 ### Phase 2: Topic Bridge
 

@@ -19,14 +19,14 @@ On the ROSMASTER Jetson, the workspace was deployed to:
 ```bash
 cd /home/jetson/workspace/ros2_ws/src/aiformula/launchers/shellscript
 ./init_sensors.sh
-cd /home/jetson/workspace/ros2_ws
-source /opt/ros/humble/setup.bash
-source /home/jetson/yahboomcar_ros2_ws/yahboomcar_ws/install/setup.bash
-source install/setup.bash
-ros2 launch launchers all_nodes.launch
+./launch_all_nodes.sh
 ```
 
-`all_nodes.launch.py` is also available.
+The wrapper sources ROS 2 Humble, the Yahboom workspace, and `/home/jetson/workspace/ros2_ws/install/setup.bash` before launching. For manual shells, use:
+
+```bash
+source /home/jetson/workspace/ros2_ws/src/aiformula/launchers/shellscript/source_rosmaster_env.sh
+```
 
 ## Packages
 
@@ -40,6 +40,7 @@ ros2 launch launchers all_nodes.launch
 - The adapter uses `Rosmaster_Lib` for the ROSMASTER controller and keeps Sophia-facing topics under `/aiformula_*`.
 - The live ROSMASTER is treated as an R2-style platform: front steering exists, but the current adapter locks the front steering servos at neutral and drives rear motor channels 2 and 4 with differential-drive `linear.x`/`angular.z` semantics.
 - USB gamepad control is enabled by default. Hold `R2`, use left-stick vertical for forward/back, and use right-stick horizontal for differential yaw.
-- Default `V max` is `4.0`. RViz auto-disables when `DISPLAY` is unset; pass `use_rviz:=true` when running on a desktop session.
+- Default `V max` is `4.0`.
+- RViz is on by default. Use `./launch_all_nodes.sh use_rviz:=false` for headless SSH runs.
 - Chinese overview: `README.zh-CN.md`.
 - See `codex/live_rosmaster_deployment_log.md` for the latest live robot build and test record.

@@ -56,6 +56,7 @@ The end goal is to adapt the ROSMASTER robot into a development and testing plat
 - The two robots are mechanically different. The live ROSMASTER should now be treated as a Yahboom R2-style platform with front steering and two rear drive motors, controlled through `Rosmaster_Lib` and `/dev/myserial`; Sophia is a differential two-drive-wheel AI Formula platform driven by CAN.
 - Current ROSMASTER adaptation rule: lock the front steering servos at neutral and command the rear motors with differential-drive `linear.x`/`angular.z` semantics through `/aiformula_control/game_pad/cmd_vel`.
 - Current USB controller mapping: hold `R2` as the deadman, use left-stick vertical for forward/back, and use right-stick horizontal for differential yaw.
+- Preferred robot-side launch wrapper: `/home/jetson/workspace/ros2_ws/src/aiformula/launchers/shellscript/launch_all_nodes.sh`. It sources ROS 2, Yahboom, and adapter setup files before launching. RViz is on by default; pass `use_rviz:=false` for headless SSH.
 - Do not assume Sophia motor, CAN, ZED X, VectorNav, or rear potentiometer hardware exists on ROSMASTER.
 - Prefer compatibility wrappers and topic adapters over changing Sophia algorithms in place. The first target is to make ROSMASTER publish and consume the ROS topics Sophia software expects.
 - Keep all mirrored source snapshots read-only in spirit. Do adaptation work in local overlay packages or documentation under this workspace unless the user explicitly asks for a different layout.

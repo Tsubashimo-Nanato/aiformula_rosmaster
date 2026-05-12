@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 from ament_index_python.packages import get_package_share_directory
@@ -14,13 +13,12 @@ def generate_launch_description():
     rosmaster_bringup_dir = get_package_share_directory("rosmaster_aiformula_bringup")
     yahboom_description_dir = Path(get_package_share_directory("yahboomcar_description"))
     default_rviz_config = yahboom_description_dir / "rviz" / "yahboomcar.rviz"
-    default_use_rviz = "true" if os.environ.get("DISPLAY") else "false"
 
     use_rviz_arg = DeclareLaunchArgument(
         "use_rviz",
-        default_value=default_use_rviz,
+        default_value="true",
         choices=["true", "false"],
-        description="Start RViz with the ROSMASTER model view. Defaults to false when DISPLAY is unset.",
+        description="Start RViz with the ROSMASTER model view.",
     )
     allow_lateral_arg = DeclareLaunchArgument(
         "allow_lateral",
