@@ -1,0 +1,25 @@
+# Large local reference mirrors and vendor snapshots
+/mirrors/
+/rosmaster_aiformula_ws/
+
+# ROS 2 build outputs
+**/build/
+**/install/
+**/log/
+.ros/
+
+# Python caches
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Local/editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Runtime logs and temporary captures
+*.log
+/tmp/
