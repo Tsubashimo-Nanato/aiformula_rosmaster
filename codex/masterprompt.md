@@ -53,7 +53,9 @@ The end goal is to adapt the ROSMASTER robot into a development and testing plat
 
 - The ROSMASTER robot is the Jetson-based Yahboom ROSMASTER system reachable as `jetson@192.168.0.38` when it is on the same network.
 - The Sophia reference robot source is mirrored from `E:\Mess\Projects\Programming\aiformula\aiformula_sophia`.
-- The two robots are mechanically different. ROSMASTER is a Yahboom X3-style mecanum chassis driven through `Rosmaster_Lib` and `/dev/myserial`; Sophia is a differential two-drive-wheel AI Formula platform driven by CAN.
+- The two robots are mechanically different. The live ROSMASTER should now be treated as a Yahboom R2-style platform with front steering and two rear drive motors, controlled through `Rosmaster_Lib` and `/dev/myserial`; Sophia is a differential two-drive-wheel AI Formula platform driven by CAN.
+- Current ROSMASTER adaptation rule: ignore the front steering servo for now and command the base with differential-drive `linear.x`/`angular.z` semantics through `/aiformula_control/game_pad/cmd_vel`.
+- Current USB controller mapping: hold `R2` as the deadman, use left-stick vertical for forward/back, and use right-stick horizontal for differential yaw.
 - Do not assume Sophia motor, CAN, ZED X, VectorNav, or rear potentiometer hardware exists on ROSMASTER.
 - Prefer compatibility wrappers and topic adapters over changing Sophia algorithms in place. The first target is to make ROSMASTER publish and consume the ROS topics Sophia software expects.
 - Keep all mirrored source snapshots read-only in spirit. Do adaptation work in local overlay packages or documentation under this workspace unless the user explicitly asks for a different layout.

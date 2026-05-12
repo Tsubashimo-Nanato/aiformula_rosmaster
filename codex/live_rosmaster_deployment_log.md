@@ -176,13 +176,13 @@ data: 9.699999809265137
 
 This points to the ROSMASTER controller firmware re-enabling the buzzer as a low-voltage alarm. The adapter driver now defaults to `suppress_buzzer:=true`, which sends `set_beep(0)` each publish tick while the stack is running. This is a mitigation, not a battery fix.
 
-Current live mitigation after the follow-up:
+Current live launch after joystick initialization:
 
 ```text
-ros2 launch launchers all_nodes.launch use_rviz:=false suppress_buzzer:=true
+ros2 launch launchers all_nodes.launch use_rviz:=false use_joy:=true allow_lateral:=false suppress_buzzer:=true
 ```
 
-The launch was started headless after sending zero motion. PID details were captured in `/tmp/rosmaster_aiformula_launch.pid` on the robot. Stop it with:
+The launch was started headless after sending zero motion. PID details are captured in `/tmp/rosmaster_aiformula_launch.pid` on the robot. Stop it with:
 
 ```bash
 kill -INT -$(cat /tmp/rosmaster_aiformula_launch.pid)
@@ -190,9 +190,70 @@ kill -INT -$(cat /tmp/rosmaster_aiformula_launch.pid)
 
 Then send a final zero motion and buzzer-off command if needed. Charge the robot battery before relying on normal operation without suppression.
 
+## R2 Joystick Initialization
+
+The live robot was reconfigured as an R2-style platform:
+
+- `rosmaster_driver` parameter `car_type`: `5`
+- R2 URDF: `yahboomcar_R2.urdf.xacro`
+- Front steering is not commanded by the adapter.
+- `allow_lateral:=false`; commands are limited to differential-drive `linear.x` and `angular.z`.
+
+USB controller detected:
+
+```text
+Controller on /dev/input/js0
+```
+
+Joystick mapping:
+
+- Hold `R2` as the deadman.
+- Left-stick vertical drives forward/back.
+- Right-stick horizontal commands differential yaw.
+
+ROS nodes currently started by the headless launch:
+
+```text
+/aiformula_control/joy_diff_drive_mapper
+/aiformula_control/joy_node
+/imu_filter_madgwick
+/robot_state_publisher
+/rosmaster_aiformula_compat_bridge
+/rosmaster_base_node
+/rosmaster_driver
+```
+
+Idle verification:
+
+```text
+/aiformula_control/joy_node/joy:
+  axes: [-0.0, -0.0, -0.0, -0.0, 1.0, 1.0, 0.0, 0.0]
+  buttons: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+/aiformula_control/game_pad/cmd_vel:
+  linear.x: 0.0
+  angular.z: 0.0
+
+/cmd_vel:
+  linear.x: 0.0
+  angular.z: 0.0
+```
+
+Live launch PID at verification time:
+
+```text
+291917
+```
+
+Voltage after the joystick launch:
+
+```text
+data: 10.300000190734863
+```
+
 ## Notes
 
-- The adapter-owned `rosmaster_driver_x3` uses `Rosmaster_Lib` directly and avoids launching Yahboom's `Mcnamu_driver_X3` executable.
+- The adapter-owned `rosmaster_driver_x3` uses `Rosmaster_Lib` directly and avoids launching Yahboom's stock X3/R2 driver executables.
 - Yahboom base odometry and description packages are still used:
   - `yahboomcar_base_node`
   - `yahboomcar_description`

@@ -4,6 +4,7 @@ from typing import Any
 
 import rclpy
 from geometry_msgs.msg import Twist
+from rclpy.duration import Duration
 from rclpy.executors import ExternalShutdownException
 from rclpy.node import Node
 from sensor_msgs.msg import Imu, MagneticField
@@ -26,30 +27,36 @@ def _as_bool(value: Any) -> bool:
 
 
 class RosmasterDriverX3(Node):
-    """Minimal ROS 2 driver for the Yahboom ROSMASTER X3 base."""
+    """Minimal ROS 2 driver for the Yahboom ROSMASTER base controller."""
 
     def __init__(self) -> None:
         super().__init__("rosmaster_driver_x3")
 
         self.declare_parameter("imu_link", "imu_link")
+        self.declare_parameter("car_type", 5)
         self.declare_parameter("xlinear_limit", 1.0)
         self.declare_parameter("ylinear_limit", 1.0)
         self.declare_parameter("angular_limit", 5.0)
         self.declare_parameter("publish_period_sec", 0.1)
+        self.declare_parameter("command_timeout_sec", 0.5)
         self.declare_parameter("enable_led_buzzer_topics", True)
         self.declare_parameter("suppress_buzzer", True)
 
         self.imu_link = str(self.get_parameter("imu_link").value)
+        self.car_type = int(self.get_parameter("car_type").value)
         self.xlinear_limit = float(self.get_parameter("xlinear_limit").value)
         self.ylinear_limit = float(self.get_parameter("ylinear_limit").value)
         self.angular_limit = float(self.get_parameter("angular_limit").value)
         self.publish_period_sec = float(self.get_parameter("publish_period_sec").value)
+        self.command_timeout_sec = float(self.get_parameter("command_timeout_sec").value)
         self.enable_led_buzzer_topics = _as_bool(self.get_parameter("enable_led_buzzer_topics").value)
         self.suppress_buzzer = _as_bool(self.get_parameter("suppress_buzzer").value)
 
         self.car = Rosmaster()
-        self.car.set_car_type(1)
+        self.car.set_car_type(self.car_type)
         self.car.create_receive_threading()
+        self.last_cmd_time = None
+        self.motion_stopped_for_timeout = True
 
         self.cmd_sub = self.create_subscription(Twist, "cmd_vel", self.cmd_vel_callback, 10)
         if self.enable_led_buzzer_topics:
@@ -64,8 +71,9 @@ class RosmasterDriverX3(Node):
         self.timer = self.create_timer(self.publish_period_sec, self.publish_data)
 
         self.get_logger().info(
-            "ROSMASTER X3 driver started with limits "
-            f"x={self.xlinear_limit}, y={self.ylinear_limit}, wz={self.angular_limit}"
+            "ROSMASTER driver started with "
+            f"car_type={self.car_type}, limits x={self.xlinear_limit}, "
+            f"y={self.ylinear_limit}, wz={self.angular_limit}"
         )
         if self.suppress_buzzer:
             self.get_logger().warn("Buzzer suppression is enabled. Charge the robot battery if the buzzer keeps returning.")
@@ -74,6 +82,8 @@ class RosmasterDriverX3(Node):
         vx = _clamp(msg.linear.x, self.xlinear_limit)
         vy = _clamp(msg.linear.y, self.ylinear_limit)
         wz = _clamp(msg.angular.z, self.angular_limit)
+        self.last_cmd_time = self.get_clock().now()
+        self.motion_stopped_for_timeout = False
         self.car.set_car_motion(vx, vy, wz)
 
     def rgb_light_callback(self, msg: Int32) -> None:
@@ -86,6 +96,7 @@ class RosmasterDriverX3(Node):
         stamp = self.get_clock().now().to_msg()
         if self.suppress_buzzer:
             self.car.set_beep(0)
+        self.stop_if_command_timed_out()
 
         edition = Float32()
         edition.data = float(self.car.get_version())
@@ -126,6 +137,17 @@ class RosmasterDriverX3(Node):
         self.mag_pub.publish(mag)
         self.voltage_pub.publish(battery)
         self.edition_pub.publish(edition)
+
+    def stop_if_command_timed_out(self) -> None:
+        if self.command_timeout_sec <= 0.0 or self.last_cmd_time is None:
+            return
+        if self.motion_stopped_for_timeout:
+            return
+        age = self.get_clock().now() - self.last_cmd_time
+        if age > Duration(seconds=self.command_timeout_sec):
+            self.car.set_car_motion(0.0, 0.0, 0.0)
+            self.motion_stopped_for_timeout = True
+            self.get_logger().warn("Command timeout elapsed; sent zero motion.")
 
     def destroy_node(self) -> bool:
         try:

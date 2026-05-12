@@ -12,7 +12,7 @@ The device at `192.168.0.38` is a Yahboom/ROSMASTER-style mobile robot running R
 
 `/home/jetson/yahboomcar_ros2_ws/yahboomcar_ws`
 
-The software includes Yahboom X1, X3, and R2 variants. The most relevant stack for this robot appears to be the X3 mecanum stack: `yahboomcar_bringup_X3_launch.py`, `Mcnamu_driver_X3`, `base_node_X3`, `yahboom_joy_X3`, and `yahboomcar_X3.urdf`.
+The software includes Yahboom X1, X3, and R2 variants. Initial inspection over-weighted the X3 software because those packages were prominent in the installed tree. Later live configuration confirmed this robot should be treated as an R2-style platform with front steering and two rear drive motors. The current adapter uses `car_type=5`, the R2 URDF, and ignores front steering while testing differential-drive behavior.
 
 At inspection time, the full ROS robot bringup was not running. `ros2 node list` showed no active robot nodes, and the only ROS topics visible were `/parameter_events` and `/rosout`. The active robot-related service was the Yahboom OLED service.
 

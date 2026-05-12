@@ -17,4 +17,11 @@ ros2 launch launchers all_nodes.launch.py
 
 The `launchers` package is intentionally small. It preserves the AI Formula launch entrypoint while routing hardware-specific work through ROSMASTER adapter packages.
 
+Current joystick mapping:
+
+- Hold `R2` as the deadman.
+- Left-stick vertical publishes differential-drive forward/back motion.
+- Right-stick horizontal publishes differential-drive yaw.
+- Front steering is not commanded by the adapter.
+
 The ROSMASTER driver defaults to `suppress_buzzer:=true`. It periodically sends buzzer-off while the adapter stack is running because the live controller re-enabled the buzzer when battery voltage was about `9.7 V`, consistent with a low-voltage alarm. Charge the robot battery if the alarm returns when the stack is stopped.

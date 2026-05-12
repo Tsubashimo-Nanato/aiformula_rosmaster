@@ -11,14 +11,19 @@ from launch_ros.parameter_descriptions import ParameterValue
 
 def generate_launch_description():
     yahboom_description_path = get_package_share_path("yahboomcar_description")
-    default_model_path = yahboom_description_path / "urdf/yahboomcar_X3.urdf"
+    default_model_path = yahboom_description_path / "urdf/yahboomcar_R2.urdf.xacro"
     bringup_share = Path(get_package_share_directory("rosmaster_aiformula_bringup"))
     imu_filter_config = str(bringup_share / "config" / "imu_filter_param.yaml")
 
     model_arg = DeclareLaunchArgument(
         "model",
         default_value=str(default_model_path),
-        description="Absolute path to the ROSMASTER X3 URDF file.",
+        description="Absolute path to the ROSMASTER R2 URDF file.",
+    )
+    car_type_arg = DeclareLaunchArgument(
+        "car_type",
+        default_value="5",
+        description="Rosmaster_Lib car type. Yahboom R2/R2L is 5.",
     )
     use_robot_state_publisher_arg = DeclareLaunchArgument(
         "use_robot_state_publisher",
@@ -80,6 +85,57 @@ def generate_launch_description():
         choices=["true", "false"],
         description="Continuously send buzzer-off while the ROSMASTER driver is running.",
     )
+    command_timeout_arg = DeclareLaunchArgument(
+        "command_timeout_sec",
+        default_value="0.5",
+        description="Stop the base if no cmd_vel arrives within this many seconds.",
+    )
+    use_joy_arg = DeclareLaunchArgument(
+        "use_joy",
+        default_value="true",
+        choices=["true", "false"],
+        description="Start USB gamepad control through the AI Formula cmd_vel topic.",
+    )
+    joy_device_id_arg = DeclareLaunchArgument(
+        "joy_device_id",
+        default_value="0",
+        description="Linux joystick device id used by joy_node.",
+    )
+    joy_deadzone_arg = DeclareLaunchArgument(
+        "joy_deadzone",
+        default_value="0.12",
+        description="Deadzone for joystick axes.",
+    )
+    joy_enable_button_arg = DeclareLaunchArgument(
+        "joy_enable_button",
+        default_value="7",
+        description="Button index used as the R2 deadman when the controller exposes R2 as a button.",
+    )
+    joy_enable_axis_arg = DeclareLaunchArgument(
+        "joy_enable_axis",
+        default_value="5",
+        description="Axis index used as the R2 deadman when the controller exposes R2 as an analog trigger.",
+    )
+    joy_linear_axis_arg = DeclareLaunchArgument(
+        "joy_linear_axis",
+        default_value="1",
+        description="Left-stick vertical axis for forward/back motion.",
+    )
+    joy_angular_axis_arg = DeclareLaunchArgument(
+        "joy_angular_axis",
+        default_value="3",
+        description="Right-stick horizontal axis for differential-drive yaw.",
+    )
+    joy_max_linear_x_arg = DeclareLaunchArgument(
+        "joy_max_linear_x",
+        default_value="0.25",
+        description="Maximum joystick forward speed in m/s.",
+    )
+    joy_max_angular_z_arg = DeclareLaunchArgument(
+        "joy_max_angular_z",
+        default_value="0.6",
+        description="Maximum joystick yaw rate in rad/s.",
+    )
 
     robot_description = ParameterValue(
         Command(["xacro ", LaunchConfiguration("model")]),
@@ -101,6 +157,8 @@ def generate_launch_description():
         output="screen",
         parameters=[
             {
+                "car_type": ParameterValue(LaunchConfiguration("car_type"), value_type=int),
+                "command_timeout_sec": ParameterValue(LaunchConfiguration("command_timeout_sec"), value_type=float),
                 "suppress_buzzer": ParameterValue(LaunchConfiguration("suppress_buzzer"), value_type=bool),
             }
         ],
@@ -164,9 +222,55 @@ def generate_launch_description():
         ],
     )
 
+    joy_node = Node(
+        package="joy",
+        executable="joy_node",
+        name="joy_node",
+        namespace="/aiformula_control",
+        output="screen",
+        parameters=[
+            {
+                "device_id": ParameterValue(LaunchConfiguration("joy_device_id"), value_type=int),
+                "deadzone": ParameterValue(LaunchConfiguration("joy_deadzone"), value_type=float),
+                "autorepeat_rate": 20.0,
+                "sticky_buttons": False,
+                "coalesce_interval_ms": 1,
+            }
+        ],
+        remappings=[
+            ("joy", "joy_node/joy"),
+        ],
+        condition=IfCondition(LaunchConfiguration("use_joy")),
+    )
+
+    joy_mapper_node = Node(
+        package="rosmaster_aiformula_bridge",
+        executable="joy_diff_drive_mapper",
+        name="joy_diff_drive_mapper",
+        namespace="/aiformula_control",
+        output="screen",
+        parameters=[
+            {
+                "cmd_vel_topic": "/aiformula_control/game_pad/cmd_vel",
+                "linear_axis": ParameterValue(LaunchConfiguration("joy_linear_axis"), value_type=int),
+                "angular_axis": ParameterValue(LaunchConfiguration("joy_angular_axis"), value_type=int),
+                "enable_button": ParameterValue(LaunchConfiguration("joy_enable_button"), value_type=int),
+                "enable_axis": ParameterValue(LaunchConfiguration("joy_enable_axis"), value_type=int),
+                "deadzone": ParameterValue(LaunchConfiguration("joy_deadzone"), value_type=float),
+                "max_linear_x": ParameterValue(LaunchConfiguration("joy_max_linear_x"), value_type=float),
+                "max_angular_z": ParameterValue(LaunchConfiguration("joy_max_angular_z"), value_type=float),
+            }
+        ],
+        remappings=[
+            ("joy", "joy_node/joy"),
+        ],
+        condition=IfCondition(LaunchConfiguration("use_joy")),
+    )
+
     return LaunchDescription(
         [
             model_arg,
+            car_type_arg,
             use_robot_state_publisher_arg,
             use_imu_filter_arg,
             pub_odom_tf_arg,
@@ -178,10 +282,22 @@ def generate_launch_description():
             max_linear_y_arg,
             max_angular_z_arg,
             suppress_buzzer_arg,
+            command_timeout_arg,
+            use_joy_arg,
+            joy_device_id_arg,
+            joy_deadzone_arg,
+            joy_enable_button_arg,
+            joy_enable_axis_arg,
+            joy_linear_axis_arg,
+            joy_angular_axis_arg,
+            joy_max_linear_x_arg,
+            joy_max_angular_z_arg,
             robot_state_publisher_node,
             driver_node,
             base_node,
             imu_filter_node,
             compat_bridge_node,
+            joy_node,
+            joy_mapper_node,
         ]
     )

@@ -70,7 +70,7 @@ Key dimensions/config:
 - Base mass in xacro/SDF: about `30 kg`
 - Drive model: differential drive, not mecanum
 
-This is mechanically very different from the ROSMASTER robot, whose active stack looked like an X3 mecanum platform with four powered mecanum wheels and a Rosmaster controller.
+This is mechanically very different from the ROSMASTER robot. Later live ROSMASTER work confirmed the robot should be treated as R2-style, with front steering and two rear drive motors; the current adapter ignores front steering and commands differential-drive `linear.x`/`angular.z`.
 
 ## Sensors
 
@@ -372,7 +372,7 @@ Simulation:
 
 Major differences:
 
-- ROSMASTER robot: Yahboom/ROSMASTER Jetson robot with proprietary Rosmaster controller library, OLED service, Orbbec camera, optional lidar packages, buzzer/RGB/LED control, and X3 mecanum-style software.
+- ROSMASTER robot: Yahboom/ROSMASTER Jetson robot with proprietary Rosmaster controller library, OLED service, USB/Orbbec camera support, optional lidar packages, buzzer/RGB/LED control, and R2-style front steering plus rear drive motors.
 - Sophia robot: AI Formula research vehicle with two powered wheels, rear caster, CAN motor control, ZED X camera, VectorNav IMU/GNSS, lane segmentation, lane geometry extraction, trajectory following, Nav2, and Gazebo simulation.
 - ROSMASTER motor path: `cmd_vel -> Rosmaster_Lib -> /dev/myserial -> base controller`.
 - Sophia motor path: `cmd_vel -> motor_controller -> CAN frame 0x210 -> ros2_socketcan -> can0`.

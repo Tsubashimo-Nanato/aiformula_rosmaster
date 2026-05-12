@@ -47,6 +47,12 @@ def generate_launch_description():
         choices=["true", "false"],
         description="Continuously send buzzer-off while the ROSMASTER driver is running.",
     )
+    use_joy_arg = DeclareLaunchArgument(
+        "use_joy",
+        default_value="true",
+        choices=["true", "false"],
+        description="Start USB gamepad control through the AI Formula cmd_vel topic.",
+    )
 
     rosmaster_bringup = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -58,6 +64,7 @@ def generate_launch_description():
             "max_linear_y": LaunchConfiguration("max_linear_y"),
             "max_angular_z": LaunchConfiguration("max_angular_z"),
             "suppress_buzzer": LaunchConfiguration("suppress_buzzer"),
+            "use_joy": LaunchConfiguration("use_joy"),
         }.items(),
     )
 
@@ -78,6 +85,7 @@ def generate_launch_description():
             max_linear_y_arg,
             max_angular_z_arg,
             suppress_buzzer_arg,
+            use_joy_arg,
             rosmaster_bringup,
             rviz,
         ]
