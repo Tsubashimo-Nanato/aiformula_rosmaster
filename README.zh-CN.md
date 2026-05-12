@@ -58,7 +58,7 @@ RViz 默认启动。无显示器或 SSH 运行时使用：
 ros2 launch auto_launch auto_yolop_launch.py
 ```
 
-该节点使用从 `YOLOP_A1` 镜像来的 `yolop-640-640.onnx`，订阅：
+该节点默认使用从 `YOLOP_A1` 的 `epoch-240.pth` 导出的 lane-only 模型 `yolop-epoch-240-640.onnx`，订阅：
 
 - `/aiformula_sensing/zed_node/left_image/undistorted`
 

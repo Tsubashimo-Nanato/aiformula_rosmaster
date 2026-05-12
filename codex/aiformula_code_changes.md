@@ -24,4 +24,5 @@ Latest ROSMASTER-specific changes:
 - ROSMASTER USB RGB camera is bridged to the ZED image topic names.
 - ROSMASTER Orbbec/Astra depth camera is bridged to the ZED point-cloud/depth topic names.
 - `ros2 launch auto_launch auto_yolop_launch.py` is supported through adapter-owned `auto_launch` and `road_detector` packages.
-- `road_detector` uses the mirrored `YOLOP_A1` ONNX model and publishes a `mono8` lane mask on `/aiformula_perception/road_detector/mask_image`.
+- `road_detector` uses a lane-only ONNX export from `YOLOP_A1` checkpoint `epoch-240.pth` and publishes a `mono8` lane mask on `/aiformula_perception/road_detector/mask_image`.
+- `road_detector/tools/export_lane_checkpoint.py` records the checkpoint-to-ONNX conversion used on the Jetson.

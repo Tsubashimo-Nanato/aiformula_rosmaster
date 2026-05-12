@@ -15,8 +15,8 @@ def generate_launch_description():
         [
             DeclareLaunchArgument(
                 "onnx_path",
-                default_value=str(share_dir / "weights" / "yolop-640-640.onnx"),
-                description="Path to the mirrored YOLOP_A1 ONNX model.",
+                default_value=str(share_dir / "weights" / "yolop-epoch-240-640.onnx"),
+                description="Path to the YOLOP_A1 lane-only ONNX model.",
             ),
             DeclareLaunchArgument(
                 "input_image_topic",

@@ -50,7 +50,7 @@ source /home/jetson/workspace/ros2_ws/src/aiformula/launchers/shellscript/source
 - YOLOP compatibility can be launched after the main camera stack is running:
   - `ros2 launch auto_launch auto_yolop_launch.py`
   - publishes `/aiformula_perception/road_detector/mask_image`
-  - uses the mirrored `YOLOP_A1` ONNX model from `road_detector/weights/yolop-640-640.onnx`
+  - uses the lane-only `YOLOP_A1` epoch-240 export from `road_detector/weights/yolop-epoch-240-640.onnx`
 - RViz is on by default. Use `./launch_all_nodes.sh use_rviz:=false` for headless SSH runs.
 - Chinese overview: `README.zh-CN.md`.
 - See `codex/live_rosmaster_deployment_log.md` for the latest live robot build and test record.

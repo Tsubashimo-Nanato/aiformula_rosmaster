@@ -414,3 +414,43 @@ Runtime provider:
 ```text
 CUDAExecutionProvider, CPUExecutionProvider
 ```
+
+## 2026-05-13 Update: YOLOP Epoch 240
+
+Requested checkpoint:
+
+```text
+E:\Mess\Projects\Programming\aiformula\YOLOP\YOLOP_A1\runs\LaneDataset\lane_only\_2026-04-24-16-47\epoch-240.pth
+```
+
+Exported on the Jetson with `road_detector/tools/export_lane_checkpoint.py` to:
+
+```text
+road_detector/weights/yolop-epoch-240-640.onnx
+```
+
+ONNX verification:
+
+```text
+inputs:  images [1, 3, 640, 640]
+outputs: lane_line_seg [1, 2, 640, 640]
+providers: CUDAExecutionProvider, CPUExecutionProvider
+```
+
+Robot rebuild and restart:
+
+```text
+Summary: 2 packages finished [9.39s]
+main launch PID: 14145
+YOLOP launch PID: 14368
+```
+
+Runtime verification after restart:
+
+```text
+/aiformula_perception/road_detector active
+/rviz2 active
+mask_image: 640x480 mono8
+mask_image rate: ~13.5 Hz
+voltage: 11.5 V
+```
